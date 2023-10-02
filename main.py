@@ -19,19 +19,41 @@ canva.pack()
 canva.create_image(width/2, height/2, anchor="center", image=img_map)
 
 robot = canva.create_oval(30, 30, 60, 60, width=3)
-pic = ImageGrab.grab()
+image = Image.open("resize.png")
 
 
 def gui():
-    # while True:
-    #     canva.move(robot, 0, 1)
-    #     if pic.getpixel((int(canva.coords(robot)[1]), int(canva.coords(robot)[3]))):
-    for i in range(1200):
-        canva.move(robot, 1, 1)
-        print(pic.getpixel((int(canva.coords(robot)[1]), int(canva.coords(robot)[3]))))
+    x = int(canva.coords(robot)[0] + canva.coords(robot)[2]) // 2
+    y = int(canva.coords(robot)[1] + canva.coords(robot)[3]) // 2
+    direction = "droite"
+    while True:
+        rgb = image.getpixel((x, y))
+        print("x = ", x, " ,y = ", y, " ,r = ", rgb[0], " ,g = ", rgb[1], ", b = ", rgb[2])
+        x, y = move(direction, x, y)
+        if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
+            if direction == "droite":
+                direction = "gauche"
+            elif direction == "gauche":
+                direction = "droite"
         window.update()
-        time.sleep(0.01)
+        time.sleep(0.001)
     window.mainloop()
+
+
+def move(direction, x, y):
+    if direction == "droite":
+        canva.move(robot, 1, 0)
+        x += 1
+    elif direction == "gauche":
+        canva.move(robot, -1, 0)
+        x -= 1
+    elif direction == "haut":
+        canva.move(robot, 0, -1)
+        y -= 1
+    elif direction == "bas":
+        canva.move(robot, 0, 1)
+        y += 1
+    return x, y
 
 
 def main():
