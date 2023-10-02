@@ -28,7 +28,6 @@ def gui():
     #     if pic.getpixel((int(canva.coords(robot)[1]), int(canva.coords(robot)[3]))):
     for i in range(1200):
         canva.move(robot, 1, 1)
-        if ()
         print(pic.getpixel((int(canva.coords(robot)[1]), int(canva.coords(robot)[3]))))
         window.update()
         time.sleep(0.01)
