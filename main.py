@@ -1,7 +1,8 @@
 import time
 import tkinter
-from PIL import ImageTk, Image, ImageGrab
+from PIL import ImageTk, Image
 from resizeimage import resizeimage
+
 
 width = 1200
 height = 600
@@ -27,16 +28,16 @@ def gui():
     y = int(canva.coords(robot)[1] + canva.coords(robot)[3]) // 2
     direction = "droite"
     while True:
+        x, y = move(direction, x, y)
         rgb = image.getpixel((x, y))
         print("x = ", x, " ,y = ", y, " ,r = ", rgb[0], " ,g = ", rgb[1], ", b = ", rgb[2])
-        x, y = move(direction, x, y)
         if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
             if direction == "droite":
                 direction = "gauche"
             elif direction == "gauche":
                 direction = "droite"
         window.update()
-        time.sleep(0.001)
+        time.sleep(0.00001)
     window.mainloop()
 
 
