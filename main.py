@@ -30,7 +30,7 @@ canva.create_image(width/2, height/2, anchor="center", image=img_map)
 image = Image.open("resize.png")
 
 """Initialisation du robot"""
-robot = Robot(canva, 30, 30, 30)
+robot = Robot(canva, image, 30, 30, 30)
 
 def gui():
     pos = robot.get_robot_position()
@@ -45,7 +45,7 @@ def gui():
             elif direction == "gauche":
                 direction = "droite"
         window.update()
-        time.sleep(0.00001)
+        time.sleep(0.005)
 
 
 def user_inputs():
