@@ -4,7 +4,7 @@ from tkinter import filedialog
 from PIL import ImageTk, Image
 from resizeimage import resizeimage
 from robot import Robot
-
+import pynput
 
 """Taille de la fenêtre"""
 width: int = 1200
@@ -24,20 +24,47 @@ resizeimage.resize_width(img, width).save("resize.png")
 """Import de l'image formaté et création du canva"""
 img_map = ImageTk.PhotoImage(Image.open("resize.png"))
 canva.pack()
-canva.create_image(width/2, height/2, anchor="center", image=img_map)
+canva.create_image(width / 2, height / 2, anchor="center", image=img_map)
 
 """Import de l'image en mémoire pour checker les limites"""
 image = Image.open("resize.png")
 
+robot: Robot
+
+
+def on_mouse_click(eventorigin):
+    global x0, y0, robot
+    x0 = eventorigin.x
+    y0 = eventorigin.y
+    robot = Robot(canva, image, x0, y0, 30)
+
+def on_mouse_wheel(eventorigin):
+    if eventorigin.delta < 0:
+        robot.change_orientation(-10)
+    else:
+        robot.change_orientation(10)
+
+
 """Initialisation du robot"""
-robot = Robot(canva, image, 30, 30, 30)
+canva.bind("<Button 1>", on_mouse_click)
+canva.bind("<MouseWheel>", on_mouse_wheel)
+
+
+def popup():
+    top = tkinter.Toplevel(window)
+    top.geometry("600x50")
+    top.title("Instructions")
+    tkinter.Label(top, text="Placez le robot en cliquant à un endroit de la map. "
+                            "Le robot est dirigeable avec la molette de la souris").pack()
+
 
 def gui():
-    pos = robot.get_robot_position()
+    popup()
+    #pos = robot.get_robot_position()
     direction = "droite"
     while True:
         x, y = robot.move_robot(direction)
-        rgb = image.getpixel((x+15, y+15))
+        rgb = image.getpixel((x, y))
         #print("x = ", x, " ,y = ", y, " ,r = ", rgb[0], " ,g = ", rgb[1], ", b = ", rgb[2])
         if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
             if direction == "droite":
@@ -67,8 +94,9 @@ def dialogbox_choose_map():
 
 
 def main():
-    gui()
-    # user_inputs()
+    popup()
+    #gui()
+    user_inputs()
     window.mainloop()
 
 

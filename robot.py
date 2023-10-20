@@ -33,14 +33,53 @@ class Robot:
         self.lines = []
         self.create_sonar()
 
-    def create_sonar(self, nb_rayon=10, rayon=180, distance=100):
+    def create_sonar(self, nb_rayon=10, rayon=180, distance=60):
         occurences = int(rayon / (nb_rayon - 1))
         for deg in range(0, rayon + 1, occurences):
             rad = deg * math.pi / 180
-            x = math.cos(rad) * distance
-            y = math.sin(rad) * distance
-            self.lines.append(self.canva.create_line(self.x, self.y, self.x + x, self.y + y, fill="blue", width=1))
+            x_start = math.cos(rad) * self.rayon
+            y_start = math.sin(rad) * self.rayon
+            x_end = math.cos(rad) * distance
+            y_end = math.sin(rad) * distance
+            x_step = (self.x + x_start) / (self.x + x_end)
+            y_step = (self.y + y_start) / (self.y + y_end)
+            #x_end, y_end, color = self.sensor_collision(x_start, x_end, x_step, y_start, y_end, y_step)
+            #print("x = {} => {} step => {}, y = {} => {} step => {}".format(self.x + x_start, self.x + x_end, x_step, self.y + y_start, self.y + y_end, y_step))
+            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
+                                                     fill="blue", width=1))
         self.has_sonar = True
+
+    def change_orientation(self, incr):
+        self.direction += incr
+        if self.direction < 0:
+            self.direction = 360
+        elif self.direction > 360:
+            self.direction = 0
+        print(self.direction)
+        rad = self.direction * math.pi / 180
+        x_end = math.cos(rad) * self.rayon
+        y_end = math.sin(rad) * self.rayon
+        print(self.redline_x, x_end)
+        self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
+
+
+    def sensor_collision(self, x_start, x_end, x_stp, y_start, y_end, y_stp):
+        checked = False
+        x_copy = x_start
+        y_copy = y_start
+        i = 0
+        while x_copy < x_end and y_copy < y_end or checked:
+            checked = self.check_collision(x_copy, y_copy)
+            x_copy += x_stp
+            y_copy += y_stp
+            print(x_copy, y_copy, checked, i)
+            i += 1
+        if checked:
+            print("pas collision")
+            return x_end, y_end, "blue"
+        else:
+            print("collision")
+            return x_copy, y_copy, "red"
 
     def kill_sonar(self):
         for element in self.lines:
@@ -73,11 +112,16 @@ class Robot:
             self.y += 1
         return self.x, self.y
 
-    def check_collision(self, image, x=0, y=0):
-        if x != 0 or y != 0:
-            rgb = image.getpixel((x, y))
+
+    def check_collision(self, x=0.0, y=0.0):
+        if x != 0.0 or y != 0.0:
+            rgb = self.image.getpixel((x, y))
         else:
-            rgb = image.getpixel((self.x, self.y))
+            rgb = self.image.getpixel((self.x, self.y))
+        if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
+            return True
+        else:
+            return False
 
     def move_sonar(self):
         return 0
