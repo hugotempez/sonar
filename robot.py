@@ -3,35 +3,52 @@ import math
 
 
 class Robot:
+    counter = 0
+
     def __init__(self, canva, image, x=30, y=30, diameter=30, rayon=0, nb_rayon=0):
-        """Diamétre et position du robot"""
-        self.diameter = diameter
-        self.rayon = diameter / 2
-        self.x = x + self.rayon
-        self.y = y + self.rayon
-        """Position de la pointe extérieur de la ligne rouge"""
-        self.redline_x = self.x + self.rayon
-        self.redline_y = self.y
-        """Orientation en degrés"""
-        self.direction = 0
-        """Rayon de détection du sonar et nombre de capteur(s)"""
-        self.rayon_sonar = rayon
-        self.nb_rayon = nb_rayon
-        self.distance_rayon = 0
-        """Import du canva depuis le main programme"""
-        self.canva = canva
-        """Background image"""
-        self.image = image
-        """Création du robot et de la ligne directrice, les details des paramètres sont les suivants :
-         param1 = debut x, param2 = debut y, param3 = fin x, param4 = fin y 
-         (ou inversement si param3 est plus petit que param1 par exemple)"""
-        self.robot = canva.create_oval(self.x - self.rayon, self.y - self.rayon,
-                                       self.x + self.rayon, self.y + self.rayon, width=2)
-        self.robot_direction = canva.create_line(self.x, self.y,
-                                                 self.redline_x, self.redline_y, fill="red", width=1)
-        self.has_sonar = False
-        self.lines = []
-        self.create_sonar()
+        if Robot.check_counter():
+            """Diamétre et position du robot"""
+            self.diameter = diameter
+            self.rayon = diameter / 2
+            self.x = x + self.rayon
+            self.y = y + self.rayon
+            """Position de la pointe extérieur de la ligne rouge"""
+            self.redline_x = self.x + self.rayon
+            self.redline_y = self.y
+            """Orientation en degrés"""
+            self.direction = 0
+            """Rayon de détection du sonar et nombre de capteur(s)"""
+            self.rayon_sonar = rayon
+            self.nb_rayon = nb_rayon
+            self.distance_rayon = 0
+            """Import du canva depuis le main programme"""
+            self.canva = canva
+            """Background image"""
+            self.image = image
+            """Création du robot et de la ligne directrice, les details des paramètres sont les suivants :
+             param1 = debut x, param2 = debut y, param3 = fin x, param4 = fin y 
+             (ou inversement si param3 est plus petit que param1 par exemple)"""
+            self.robot = canva.create_oval(self.x - self.rayon, self.y - self.rayon,
+                                           self.x + self.rayon, self.y + self.rayon, width=2)
+            self.robot_direction = canva.create_line(self.x, self.y,
+                                                     self.redline_x, self.redline_y, fill="red", width=1)
+            self.has_sonar = False
+            self.lines = []
+            self.create_sonar()
+            Robot.increment_counter()
+        else:
+            print("Il existe deja une instance de cette classe")
+
+    @staticmethod
+    def increment_counter():
+        Robot.counter += 1
+
+    @staticmethod
+    def check_counter():
+        if Robot.counter == 0:
+            return True
+        else:
+            return False
 
     def create_sonar(self, nb_rayon=10, rayon=180, distance=60):
         occurences = int(rayon / (nb_rayon - 1))
