@@ -4,11 +4,26 @@ from tkinter import filedialog
 from PIL import ImageTk, Image
 from resizeimage import resizeimage
 from robot import Robot
-import pynput
+
+
+def user_inputs():
+    text_label = ("Choisissez votre map en cliquant sur le bouton ci-dessous."
+                  "Pour information, les formats acceptés sont png, jpg et jpeg et"
+                  " l'image sera automatiquement redimensionné en "
+                  + str(width) + "x" + str(height) + ".")
+    label_map_choice = tkinter.Label(window, text=text_label)
+    label_map_choice.pack()
+    button_map_choice = tkinter.Button(window, text="Choix de la map", command=dialogbox_choose_map)
+    button_map_choice.pack()
+    label_map_chosen = tkinter.Label(window, textvariable=chosen_map)
+    label_map_chosen.pack()
+    button_launch = tkinter.Button(window, text="Lancer la simulation", command=gui)
+    button_launch.pack()
+
 
 """Taille de la fenêtre"""
 width: int = 1200
-height: int = 700
+height: int = 600
 
 """Création de la fenêtre"""
 window = tkinter.Tk()
@@ -19,7 +34,6 @@ window.resizable(False, False)
 def open_image():
     file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.png *.jpeg *.gif *.bmp")])
     if file_path:
-
         image = Image.open(file_path)
         resized_image = image.resize((1200, 600))
         photo = ImageTk.PhotoImage(resized_image)
@@ -28,6 +42,11 @@ def open_image():
         canva.create_image(width / 2, height / 2, anchor="center", image=photo)
         label.config(image=photo)
         label.photo = photo
+
+def dialogbox_choose_map():
+    filetypes = [("png", "*.png"), ("jpg", "*.jpg"), ("jpeg", "*.jpeg")]
+    chosen_map.set(filedialog.askopenfilename(initialdir="/", title="Choisissez une image", filetypes=filetypes))
+
 """Initialisation du canva et formatage de l'image"""
 canva = tkinter.Canvas(width=width, height=height, background="white")
 img = Image.open("Map_sonar.png")
