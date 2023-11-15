@@ -6,36 +6,26 @@ from resizeimage import resizeimage
 from robot import Robot
 
 
-"""Taille de la fenêtre"""
+# Taille de la fenêtre
 WIDTH: int = 1200
 HEIGHT: int = 600
 
-"""Création de la fenêtre"""
+# Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
 window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
-"""Initialisation du Canvas"""
-canva: tkinter.Canvas
+# Variables globales
+image: Image                # Image en mémoire pour le check des limites
+robot: Robot                # Instance de l'objet robot
+canva: tkinter.Canvas       # Canvas Tkinter
 
-"""Formatage de l'image"""
-img = Image.open("Map_sonar.png")
-resizeimage.resize_width(img, WIDTH).save("resize.png")
 
-"""Import de l'image formaté et création du canva"""
-# img_map = ImageTk.PhotoImage(Image.open("resize.png"))
-# canva.pack()
-# canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=img_map)
-
-"""Import de l'image en mémoire pour checker les limites"""
-image = Image.open("resize.png")
-
-def resize_image(path):
-    return 0
-
-"""Instance de l'objet robot"""
-robot: Robot
+def resize_image(file_path):
+    global image
+    img = Image.open(file_path)
+    img.resize((WIDTH, HEIGHT)).save("resize.png")
 
 
 def init_sim():
@@ -45,7 +35,6 @@ def init_sim():
     img_map = ImageTk.PhotoImage(Image.open("resize.png"))
     canva.pack()
     canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=img_map)
-    return 0
 
 
 def user_inputs():
@@ -73,6 +62,8 @@ def open_image():
         canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=photo)
         label.config(image=photo)
         label.photo = photo
+    else:
+        raise Exception
 
 
 def dialogbox_choose_map():
@@ -81,7 +72,7 @@ def dialogbox_choose_map():
 
 
 def on_mouse_click(eventorigin):
-    global x0, y0, robot
+    global robot
     x0 = eventorigin.x
     y0 = eventorigin.y
     robot = Robot(canva, image, x0, y0, 30)
@@ -94,13 +85,11 @@ def on_mouse_wheel(eventorigin):
         robot.change_orientation(10)
 
 
-"""Initialisation des binds pour le robot"""
-# canva.bind("<Button 1>", on_mouse_click)
-# canva.bind("<MouseWheel>", on_mouse_wheel)
+def key_bindings():
+    """Initialisation des binds pour le robot"""
+    canva.bind("<Button 1>", on_mouse_click)
+    canva.bind("<MouseWheel>", on_mouse_wheel)
 
-# Créer un bouton pour ouvrir une image
-open_button = tkinter.Button(window, text="Ouvrir une image", command=open_image)
-open_button.pack(pady=10)
 
 # Créer une étiquette pour afficher l'image
 label = tkinter.Label(window)
@@ -132,11 +121,9 @@ def gui():
         time.sleep(0.005)
 
 
-
-
 def main():
     popup()
-    #gui()
+    # gui()
     user_inputs()
     window.mainloop()
 
