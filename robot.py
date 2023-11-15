@@ -60,8 +60,6 @@ class Robot:
             y_end = math.sin(rad) * distance
             x_step = (self.x + x_start) / (self.x + x_end)
             y_step = (self.y + y_start) / (self.y + y_end)
-            #x_end, y_end, color = self.sensor_collision(x_start, x_end, x_step, y_start, y_end, y_step)
-            #print("x = {} => {} step => {}, y = {} => {} step => {}".format(self.x + x_start, self.x + x_end, x_step, self.y + y_start, self.y + y_end, y_step))
             self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
                                                      fill="blue", width=1))
         self.has_sonar = True
@@ -128,7 +126,6 @@ class Robot:
             self.canva.move(self.robot_direction, 0, 1)
             self.y += 1
         return self.x, self.y
-
 
     def check_collision(self, x=0.0, y=0.0):
         if x != 0.0 or y != 0.0:

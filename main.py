@@ -1,8 +1,13 @@
 import time
 import tkinter
 from tkinter import filedialog
+import sys
+import os
 from PIL import ImageTk, Image
 from robot import Robot
+
+# Path d'execution
+PATH = os.path.dirname(sys.argv[0])
 
 # Taille de la fenêtre
 WIDTH: int = 1200
@@ -15,21 +20,21 @@ window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
 # Variables globales
-img_path = ""               # Path de l'image
-image: Image                # Image en mémoire pour le check des limites
-robot: Robot                # Instance de l'objet robot
-menu_frame: tkinter.Frame   # Frame pour le menu
-canva: tkinter.Canvas       # Canvas Tkinter
+img_path = ""                   # Path de l'image
+image: Image                    # Image en mémoire pour le check des limites
+robot: Robot                    # Instance de l'objet robot
+menu_frame: tkinter.Frame       # Frame pour le menu
+canva: tkinter.Canvas           # Canvas Tkinter
 
 
 def resize_image(file_path):
     """Redimensionne une image si elle est trouvée, sinon lève une exception"""
-    if file_path:
+    try:
         img = Image.open(file_path)
         img.resize((WIDTH, HEIGHT)).save("resize.png")
         img.close()
-    else:
-        raise FileNotFoundError
+    except FileNotFoundError as e:
+        print(e)
 
 
 def main_menu():
@@ -57,7 +62,7 @@ def dialogbox_choose_map():
 
 
 def on_mouse_click(eventorigin):
-    global robot
+    global robot, canva
     x0 = eventorigin.x
     y0 = eventorigin.y
     robot = Robot(canva, image, x0, y0, 30)
@@ -72,6 +77,7 @@ def on_mouse_wheel(eventorigin):
 
 def key_bindings():
     """Initialisation des binds pour le robot"""
+    global canva
     canva.bind("<Button 1>", on_mouse_click)
     canva.bind("<MouseWheel>", on_mouse_wheel)
 
@@ -87,28 +93,35 @@ def popup():
 
 def return_to_menu():
     global canva, menu_frame
-    canva.destroy()
+    canva.grid_remove()
     menu_frame.pack()
+    window.config(menu="")
 
 
 def init_sim():
     """Initialisation du canva et chargement de l'image"""
-    global menu_frame, canva, image, img_path
+    global window, menu_frame, image, img_path, canva
     if img_path != "":
         try:
             resize_image(img_path)
             menu_frame.pack_forget()
-            canva = tkinter.Canvas(width=WIDTH, height=HEIGHT, background="red")
-            print(img_path)
-            image = Image.open("resize.png")
-            img_map = ImageTk.PhotoImage(image)
-            #canva.grid(row=1, column=1)
-            canva.pack()
-            canva.create_image(WIDTH/2, HEIGHT/2, anchor="center", image=img_map)
-            # bottom_frame = tkinter.Frame(canva)
-            # bottom_frame.grid(row=1, column=2)
-            # return_button = tkinter.Button(bottom_frame, text="Quitter", command=return_to_menu)
-            # return_button.pack()
+            canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT)
+
+            menubar = tkinter.Menu(canva)
+            sim = tkinter.Menu(menubar, tearoff=0)
+            sim.add_command(label="Quitter simulation", command=return_to_menu)
+            menubar.add_cascade(label="Simulation", menu=sim)
+            window.config(menu=menubar)
+
+            image = Image.open("D:/Python/sonar/resize.png")
+            map_image = ImageTk.PhotoImage(image)
+            canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=map_image)
+            canva.image = map_image
+            canva.grid(row=0, column=0)
+            bottom_frame = tkinter.Frame(canva, height=100)
+            #bottom_frame.grid(row=1, column=0)
+            # button_1 = tkinter.Button(bottom_frame, text="Quitter la simulation", command=return_to_menu)
+            # button_1.pack()
             key_bindings()
             popup()
         except Exception as e:
@@ -135,7 +148,6 @@ def gui():
 
 def main():
     main_menu()
-    # gui()
     window.mainloop()
 
 
