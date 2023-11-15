@@ -16,7 +16,7 @@ class Robot:
             self.redline_x = self.x + self.rayon
             self.redline_y = self.y
             """Orientation en degrés"""
-            self.direction = 0
+            self.direction = 90
             """Rayon de détection du sonar et nombre de capteur(s)"""
             self.rayon_sonar = rayon
             self.nb_rayon = nb_rayon
@@ -35,6 +35,7 @@ class Robot:
             self.has_sonar = False
             self.lines = []
             self.create_sonar()
+            self.change_orientation()
             Robot.increment_counter()
         else:
             print("Il existe deja une instance de cette classe")
@@ -52,31 +53,31 @@ class Robot:
 
     def create_sonar(self, nb_rayon=10, rayon=180, distance=60):
         occurences = int(rayon / (nb_rayon - 1))
-        for deg in range(0, rayon + 1, occurences):
-            rad = deg * math.pi / 180
+        for deg in range(0 + (self.direction - 90), rayon + (self.direction - 90) + 1, occurences):
+            rad = deg * (math.pi / 180)
             x_start = math.cos(rad) * self.rayon
             y_start = math.sin(rad) * self.rayon
             x_end = math.cos(rad) * distance
             y_end = math.sin(rad) * distance
-            x_step = (self.x + x_start) / (self.x + x_end)
-            y_step = (self.y + y_start) / (self.y + y_end)
             self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
                                                      fill="blue", width=1))
         self.has_sonar = True
 
-    def change_orientation(self, incr):
-        self.direction += incr
-        if self.direction < 0:
-            self.direction = 360
-        elif self.direction > 360:
+    def change_orientation(self, incr=0):
+        if self.direction == 0 and incr < 0:
+            self.direction = 350
+        elif self.direction == 350 and incr > 0:
             self.direction = 0
+        else:
+            self.direction += incr
         print(self.direction)
         rad = self.direction * math.pi / 180
         x_end = math.cos(rad) * self.rayon
         y_end = math.sin(rad) * self.rayon
-        print(self.redline_x, x_end)
+        #print(self.redline_x, x_end)
         self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
-
+        self.kill_sonar()
+        self.create_sonar()
 
     def sensor_collision(self, x_start, x_end, x_stp, y_start, y_end, y_stp):
         checked = False
@@ -95,6 +96,9 @@ class Robot:
         else:
             print("collision")
             return x_copy, y_copy, "red"
+
+    def get_lidar_data(self):
+        return 1
 
     def kill_sonar(self):
         for element in self.lines:
