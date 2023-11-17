@@ -1,5 +1,6 @@
 import tkinter
 import math
+import numpy
 
 
 class Robot:
@@ -34,14 +35,7 @@ class Robot:
                                                      self.redline_x, self.redline_y, fill="red", width=1)
             self.has_sonar = False
             self.lines = []
-            if rayon != 0 and nb_rayon != 0:
-                print("ici")
-                self.create_sonar(self.nb_rayon, self.rayon_sonar, self.distance_rayon)
-            else:
-                print("la")
-                self.create_sonar()
             self.create_sonar()
-            self.change_orientation()
             Robot.increment_counter()
         else:
             print("Il existe deja une instance de cette classe")
@@ -61,14 +55,15 @@ class Robot:
         else:
             return False
 
-    def create_sonar(self, nb_rayon=20, rayon=180, distance=60):
-        occurences = int(rayon / (nb_rayon - 1))
-        for deg in range(0 + (self.direction - 90), rayon + (self.direction - 90) + 1, occurences):
+    def create_sonar(self):
+        step = self.rayon_sonar / (self.nb_rayon-1)
+        for ray in range(self.nb_rayon):
+            deg = self.direction - (self.rayon_sonar/2) + (ray*step)
             rad = deg * (math.pi / 180)
             x_start = math.cos(rad) * self.rayon
             y_start = math.sin(rad) * self.rayon
-            x_end = math.cos(rad) * distance
-            y_end = math.sin(rad) * distance
+            x_end = math.cos(rad) * self.distance_rayon
+            y_end = math.sin(rad) * self.distance_rayon
             self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
                                                      fill="blue", width=1))
         self.has_sonar = True
@@ -80,7 +75,6 @@ class Robot:
             self.direction = 0
         else:
             self.direction += incr
-        print(self.direction)
         rad = self.direction * math.pi / 180
         x_end = math.cos(rad) * self.rayon
         y_end = math.sin(rad) * self.rayon

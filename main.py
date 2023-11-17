@@ -20,16 +20,16 @@ window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
 # Variables globales
-img_path = ""  # Path de l'image
-image: Image  # Image en mémoire pour le check des limites
-robot: Robot  # Instance de l'objet robot
-menu_frame: tkinter.Frame  # Frame pour le menu
-canva: tkinter.Canvas  # Canvas Tkinter
+img_path = ""                                   # Path de l'image
+image: Image                                    # Image en mémoire pour le check des limites
+robot: Robot                                    # Instance de l'objet robot
+menu_frame: tkinter.Frame                       # Frame pour le menu
+canva: tkinter.Canvas                           # Canvas Tkinter
 
 # Paramètres robot
-nb_rayons = 0
-portee_rayon = 0
-rayon_lidar = 0
+nb_rayons = 2
+portee_rayon = 40
+rayon_lidar = 90
 
 
 def resize_image(file_path):
@@ -60,12 +60,12 @@ def main_menu():
     label_map_chosen.pack()
     nb_ray = tkinter.IntVar()
     nb_rayons_slider = tkinter.Scale(simu_frame, variable=nb_ray, orient="horizontal",
-                                     from_=1, to=20, label="Nombre de rayons du LIDAR :", length=180,
+                                     from_=2, to=40, label="Nombre de rayons du LIDAR :", length=180,
                                      command=lambda a=nb_ray.get(): set_nb_rayons(a))
     nb_rayons_slider.pack()
     portee_ray = tkinter.IntVar()
     portee_rayons_slider = tkinter.Scale(simu_frame, variable=portee_ray, orient="horizontal",
-                                         from_=1, to=100, label="Portée des rayons du LIDAR :", length=180,
+                                         from_=40, to=400, label="Portée des rayons du LIDAR :", length=180,
                                          command=lambda a=portee_ray.get(): set_portee_rayons(a))
     portee_rayons_slider.pack()
     rayon_lid = tkinter.IntVar()
@@ -105,8 +105,7 @@ def on_mouse_click(eventorigin):
     global robot, canva, rayon_lidar, nb_rayons, portee_rayon
     x0 = eventorigin.x
     y0 = eventorigin.y
-    print(rayon_lidar, nb_rayons, portee_rayon)
-    robot = Robot(canva, image, x0, y0, 30, rayon_lidar, nb_rayons, portee_rayon)
+    robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
 
 
 def on_mouse_wheel(eventorigin):
