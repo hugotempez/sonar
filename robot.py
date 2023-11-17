@@ -56,17 +56,37 @@ class Robot:
             return False
 
     def create_sonar(self):
-        step = self.rayon_sonar / (self.nb_rayon-1)
+        step = self.rayon_sonar / (self.nb_rayon - 1)
         for ray in range(self.nb_rayon):
-            deg = self.direction - (self.rayon_sonar/2) + (ray*step)
+            deg = self.direction - (self.rayon_sonar / 2) + (ray * step)
             rad = deg * (math.pi / 180)
             x_start = math.cos(rad) * self.rayon
             y_start = math.sin(rad) * self.rayon
             x_end = math.cos(rad) * self.distance_rayon
             y_end = math.sin(rad) * self.distance_rayon
-            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
-                                                     fill="blue", width=1))
+            # Modifiez la longueur des rayons pour s'arrêter à l'obstacle
+            x_end, y_end, color = self.detect_obstacle(x_start, y_start, x_end, y_end)
+
+            self.lines.append(self.canva.create_line(
+                self.x + x_start, self.y + y_start,
+                self.x + x_end, self.y + y_end,
+                fill=color, width=1
+            ))
+
         self.has_sonar = True
+
+    def detect_obstacle(self, x_start, y_start, x_end, y_end):
+        x_step = (x_end - x_start) / self.distance_rayon
+        y_step = (y_end - y_start) / self.distance_rayon
+
+        x, y = x_start, y_start
+        for _ in range(self.distance_rayon):
+            if self.check_collision(self.x + x, self.y + y):
+                return x, y, "red"  # Arrêtez le rayon à l'obstacle
+            x += x_step
+            y += y_step
+
+        return x_end, y_end, "blue"  # Pas d'obstacle détecté, utilisez la longueur complète du rayon
 
     def change_orientation(self, incr=0):
         if self.direction == 0 and incr < 0:
