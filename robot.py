@@ -17,7 +17,7 @@ class Robot:
             self.redline_x = self.x + self.rayon
             self.redline_y = self.y
             """Orientation en degrés"""
-            self.direction = 0
+            self.direction = 180
             """Rayon de détection du sonar et nombre de capteur(s)"""
             self.rayon_sonar = rayon
             self.nb_rayon = nb_rayon
@@ -64,10 +64,9 @@ class Robot:
             y_start = math.sin(rad) * self.rayon
             x_end = math.cos(rad) * self.distance_rayon
             y_end = math.sin(rad) * self.distance_rayon
-            color = "blue"
-            #print(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end)
-            x_end, y_end, color = self.sensor_collision(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end)
-            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, x_end, y_end,
+            x_end, y_end, color = self.sensor_collision(self.x + x_start, self.y + y_start, x_end, y_end)
+            #print(ray, x_end, y_end)
+            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
                                                      fill=color, width=1))
         self.has_sonar = True
 
@@ -81,24 +80,22 @@ class Robot:
         rad = self.direction * math.pi / 180
         x_end = math.cos(rad) * self.rayon
         y_end = math.sin(rad) * self.rayon
-        #print(self.redline_x, x_end)
         self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
         self.kill_sonar()
         self.create_sonar()
 
     def sensor_collision(self, x_start, y_start, x_end, y_end):
-        x_diff = x_end - x_start
-        y_diff = y_end - y_start
-        step = y_diff / x_diff
-        count = 0
-        y = y_start
-        for x in numpy.arange(x_start, x_end):
-            if self.check_collision(x, y):
-                print(x, y)
-                return x, y, "red"
-            else:
-                y += step
-        return x_end, y_end, "blue"
+        x_step = (x_end - x_start) / self.distance_rayon
+        y_step = (y_end - y_start) / self.distance_rayon
+
+        x, y = x_start, y_start
+        for _ in range(self.distance_rayon):
+            if self.check_collision(self.x + x, self.y + y):
+                return x, y, "red"  # Arrêtez le rayon à l'obstacle
+            x += x_step
+            y += y_step
+
+        return x_end, y_end, "blue"  # Pas d'obstacle détecté, utilisez la longueur complète du rayon
 
     def get_lidar_data(self):
         return 1
@@ -142,7 +139,7 @@ class Robot:
             else:
                 return False
         except IndexError:
-            return False
+            return True
 
     def move_sonar(self):
         return 0

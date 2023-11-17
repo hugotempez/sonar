@@ -143,7 +143,8 @@ def return_to_menu():
 def init_sim():
     """Initialisation du canva et chargement de l'image"""
     global window, menu_frame, image, img_path, canva
-    img_path = "resize.png"
+    if img_path == "":
+        img_path = "resize.png"
     if img_path != "":
 
         resize_image(img_path)
