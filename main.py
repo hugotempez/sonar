@@ -16,7 +16,8 @@ HEIGHT: int = 600
 # Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
-window.geometry("{}x{}".format(WIDTH, HEIGHT))
+#window.geometry("{}x{}".format(WIDTH, HEIGHT))
+window.geometry("1400x700".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
 # Variables globales
@@ -142,31 +143,30 @@ def return_to_menu():
 def init_sim():
     """Initialisation du canva et chargement de l'image"""
     global window, menu_frame, image, img_path, canva
+    img_path = "resize.png"
     if img_path != "":
-        try:
-            resize_image(img_path)
-            menu_frame.pack_forget()
-            canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT, background="white")
 
-            menubar = tkinter.Menu(canva)
-            sim = tkinter.Menu(menubar, tearoff=0)
-            sim.add_command(label="Quitter simulation", command=return_to_menu)
-            menubar.add_cascade(label="Simulation", menu=sim)
-            window.config(menu=menubar)
+        resize_image(img_path)
+        menu_frame.pack_forget()
+        canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT, background="white")
 
-            image = Image.open("./resize.png")
-            map_image = ImageTk.PhotoImage(image)
-            canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=map_image)
-            canva.image = map_image
-            canva.grid(row=0, column=0)
-            bottom_frame = tkinter.Frame(canva, height=100)
-            # bottom_frame.grid(row=1, column=0)
-            # button_1 = tkinter.Button(bottom_frame, text="Quitter la simulation", command=return_to_menu)
-            # button_1.pack()
-            key_bindings()
-            popup()
-        except Exception as e:
-            print(e)
+        menubar = tkinter.Menu(canva)
+        sim = tkinter.Menu(menubar, tearoff=0)
+        sim.add_command(label="Quitter simulation", command=return_to_menu)
+        menubar.add_cascade(label="Simulation", menu=sim)
+        window.config(menu=menubar)
+
+        image = Image.open("./resize.png")
+        map_image = ImageTk.PhotoImage(image)
+        canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=map_image)
+        canva.image = map_image
+        canva.grid(row=0, column=0)
+        bottom_frame = tkinter.Frame(canva, height=100)
+        # bottom_frame.grid(row=1, column=0)
+        # button_1 = tkinter.Button(bottom_frame, text="Quitter la simulation", command=return_to_menu)
+        # button_1.pack()
+        key_bindings()
+        #popup()
     else:
         messagebox.showerror("Erreur", "Veuillez choisir une map.")
 

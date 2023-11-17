@@ -64,8 +64,11 @@ class Robot:
             y_start = math.sin(rad) * self.rayon
             x_end = math.cos(rad) * self.distance_rayon
             y_end = math.sin(rad) * self.distance_rayon
-            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
-                                                     fill="blue", width=1))
+            color = "blue"
+            #print(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end)
+            x_end, y_end, color = self.sensor_collision(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end)
+            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, x_end, y_end,
+                                                     fill=color, width=1))
         self.has_sonar = True
 
     def change_orientation(self, incr=0):
@@ -83,23 +86,19 @@ class Robot:
         self.kill_sonar()
         self.create_sonar()
 
-    def sensor_collision(self, x_start, x_end, x_stp, y_start, y_end, y_stp):
-        checked = False
-        x_copy = x_start
-        y_copy = y_start
-        i = 0
-        while x_copy < x_end and y_copy < y_end or checked:
-            checked = self.check_collision(x_copy, y_copy)
-            x_copy += x_stp
-            y_copy += y_stp
-            print(x_copy, y_copy, checked, i)
-            i += 1
-        if checked:
-            print("pas collision")
-            return x_end, y_end, "blue"
-        else:
-            print("collision")
-            return x_copy, y_copy, "red"
+    def sensor_collision(self, x_start, y_start, x_end, y_end):
+        x_diff = x_end - x_start
+        y_diff = y_end - y_start
+        step = y_diff / x_diff
+        count = 0
+        y = y_start
+        for x in numpy.arange(x_start, x_end):
+            if self.check_collision(x, y):
+                print(x, y)
+                return x, y, "red"
+            else:
+                y += step
+        return x_end, y_end, "blue"
 
     def get_lidar_data(self):
         return 1
@@ -135,14 +134,14 @@ class Robot:
             self.y += 1
         return self.x, self.y
 
-    def check_collision(self, x=0.0, y=0.0):
-        if x != 0.0 or y != 0.0:
+    def check_collision(self, x, y):
+        try:
             rgb = self.image.getpixel((x, y))
-        else:
-            rgb = self.image.getpixel((self.x, self.y))
-        if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
-            return True
-        else:
+            if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
+                return True
+            else:
+                return False
+        except IndexError:
             return False
 
     def move_sonar(self):
