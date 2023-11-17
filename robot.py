@@ -5,7 +5,7 @@ import math
 class Robot:
     counter = 0
 
-    def __init__(self, canva, image, x=30, y=30, diameter=30, rayon=0, nb_rayon=0):
+    def __init__(self, canva, image, x=30, y=30, diameter=30, rayon=0, nb_rayon=0, portee_rayon=60):
         if Robot.check_counter():
             """Diamétre et position du robot"""
             self.diameter = diameter
@@ -16,11 +16,11 @@ class Robot:
             self.redline_x = self.x + self.rayon
             self.redline_y = self.y
             """Orientation en degrés"""
-            self.direction = 90
+            self.direction = 0
             """Rayon de détection du sonar et nombre de capteur(s)"""
             self.rayon_sonar = rayon
             self.nb_rayon = nb_rayon
-            self.distance_rayon = 0
+            self.distance_rayon = portee_rayon
             """Import du canva depuis le main programme"""
             self.canva = canva
             """Background image"""
@@ -34,6 +34,12 @@ class Robot:
                                                      self.redline_x, self.redline_y, fill="red", width=1)
             self.has_sonar = False
             self.lines = []
+            if rayon != 0 and nb_rayon != 0:
+                print("ici")
+                self.create_sonar(self.nb_rayon, self.rayon_sonar, self.distance_rayon)
+            else:
+                print("la")
+                self.create_sonar()
             self.create_sonar()
             self.change_orientation()
             Robot.increment_counter()
@@ -44,6 +50,10 @@ class Robot:
     def increment_counter():
         Robot.counter += 1
 
+    def destroy(self):
+        Robot.counter -= 1
+        del self
+
     @staticmethod
     def check_counter():
         if Robot.counter == 0:
@@ -51,7 +61,7 @@ class Robot:
         else:
             return False
 
-    def create_sonar(self, nb_rayon=10, rayon=180, distance=60):
+    def create_sonar(self, nb_rayon=20, rayon=180, distance=60):
         occurences = int(rayon / (nb_rayon - 1))
         for deg in range(0 + (self.direction - 90), rayon + (self.direction - 90) + 1, occurences):
             rad = deg * (math.pi / 180)
