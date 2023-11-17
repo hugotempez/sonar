@@ -83,6 +83,23 @@ class Robot:
         self.kill_sonar()
         self.create_sonar()
 
+    def move_and_change_orientation(self, direction):
+        self.move_robot(direction)
+        if direction == "haut":
+            self.direction = 270
+        elif direction == "bas":
+            self.direction = 90
+        elif direction == "gauche":
+            self.direction = 180
+        elif direction == "droite":
+            self.direction = 0
+        rad = self.direction * math.pi / 180
+        x_end = math.cos(rad) * self.rayon
+        y_end = math.sin(rad) * self.rayon
+        self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
+        self.kill_sonar()
+        self.create_sonar()
+
     def sensor_collision(self, x_start, x_end, x_stp, y_start, y_end, y_stp):
         checked = False
         x_copy = x_start
@@ -128,10 +145,16 @@ class Robot:
         elif direction == "haut":
             self.canva.move(self.robot, 0, -1)
             self.canva.move(self.robot_direction, 0, -1)
+            if self.has_sonar:
+                for i in range(len(self.lines)):
+                    self.canva.move(self.lines[i], 0, -1)
             self.y -= 1
         elif direction == "bas":
             self.canva.move(self.robot, 0, 1)
             self.canva.move(self.robot_direction, 0, 1)
+            if self.has_sonar:
+                for i in range(len(self.lines)):
+                    self.canva.move(self.lines[i], 0, 1)
             self.y += 1
         return self.x, self.y
 
