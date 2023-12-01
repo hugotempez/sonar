@@ -9,7 +9,7 @@ class Robot:
 
     def __init__(self, canva, image, x=30, y=30, diameter=30, rayon=0, nb_rayon=0, portee_rayon=60):
         """Constructeur"""
-        if Robot.check_counter():
+        if Robot.__check_counter():
             # Diamétre et position du robot
             self.diameter = diameter
             self.rayon = diameter / 2
@@ -37,13 +37,13 @@ class Robot:
                                                      self.redline_x, self.redline_y, fill="red", width=1)
             self.has_sonar = False
             self.lines = []
-            self.create_sonar()
-            Robot.increment_counter()
+            self.__create_sonar()
+            Robot.__increment_counter()
         else:
             print("Il existe deja une instance de cette classe")
 
     @staticmethod
-    def increment_counter():
+    def __increment_counter():
         """Incrémente un compteur pour le nombre d'instance de l'objet Robot."""
         Robot.counter += 1
 
@@ -53,14 +53,14 @@ class Robot:
         del self
 
     @staticmethod
-    def check_counter():
+    def __check_counter():
         """Check le nombre d'instance de l'objet, renvoi true s'il n'en existe pas, sinon false."""
         if Robot.counter == 0:
             return True
         else:
             return False
 
-    def create_sonar(self):
+    def __create_sonar(self):
         """Crée le lidar du robot en fonction des paramètres de l'objet."""
         step = self.rayon_sonar / (self.nb_rayon - 1)
         for ray in range(self.nb_rayon):
@@ -71,7 +71,7 @@ class Robot:
             x_end = math.cos(rad) * self.distance_rayon
             y_end = math.sin(rad) * self.distance_rayon
             # Modifiez la longueur des rayons pour s'arrêter à l'obstacle
-            x_end, y_end, color = self.detect_obstacle(x_start, y_start, x_end, y_end)
+            x_end, y_end, color = self.__detect_obstacle(x_start, y_start, x_end, y_end)
             self.lines.append(self.canva.create_line(
                 self.x + x_start, self.y + y_start,
                 self.x + x_end, self.y + y_end,
@@ -79,14 +79,14 @@ class Robot:
             ))
         self.has_sonar = True
 
-    def detect_obstacle(self, x_start, y_start, x_end, y_end):
+    def __detect_obstacle(self, x_start, y_start, x_end, y_end):
         """Detecte s'il existe une collision pour chaque rayon, renvoi une coordonée x/y
         de fin et une couleur pour le rayon en fonction du resultat."""
         x_step = (x_end - x_start) / self.distance_rayon
         y_step = (y_end - y_start) / self.distance_rayon
         x, y = x_start, y_start
         for _ in range(self.distance_rayon):
-            if self.check_collision(self.x + x, self.y + y):
+            if self.__check_collision(self.x + x, self.y + y):
                 return x, y, "red"  # Arrêtez le rayon à l'obstacle et lui donner la couleur rouge
             x += x_step
             y += y_step
@@ -106,13 +106,13 @@ class Robot:
         y_end = math.sin(rad) * self.rayon
         self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
         # Supprime et recrée le sonar avec les nouveaux paramètres
-        self.kill_sonar()
-        self.create_sonar()
+        self.__kill_sonar()
+        self.__create_sonar()
 
     def move_and_change_orientation(self, direction):
         """Déplace le robot, change son orientation si besoin, et supprime/recrée le lidar
          pour pouvoir l'orienter et détecter les eventuels nouvelles collision"""
-        self.move_robot(direction)
+        self.__move_robot(direction)
         if direction == "haut":
             self.direction = 270
         elif direction == "bas":
@@ -125,21 +125,21 @@ class Robot:
         x_end = math.cos(rad) * self.rayon
         y_end = math.sin(rad) * self.rayon
         self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
-        self.kill_sonar()
-        self.create_sonar()
+        self.__kill_sonar()
+        self.__create_sonar()
 
     def get_lidar_data(self):
         """TODO"""
         return 1
 
-    def kill_sonar(self):
+    def __kill_sonar(self):
         """Supprime le lidar."""
         for element in self.lines:
             tkinter.Canvas.delete(self.canva, element)
         self.has_sonar = False
         self.lines = []
 
-    def move_robot(self, direction):
+    def __move_robot(self, direction):
         """Déplace le robot et son lidar sur le canva en fonction du paramètre direction."""
         if direction == "droite":
             self.canva.move(self.robot, 1, 0)
@@ -171,7 +171,7 @@ class Robot:
             self.y += 1
         return self.x, self.y
 
-    def check_collision(self, x, y):
+    def __check_collision(self, x, y):
         """Check s'il y a une collision sur la trajectoire d'un rayon du lidar, renvoie true si collision
          ou si le duo (x, y) n'existe pas, false sinon."""
         try:
