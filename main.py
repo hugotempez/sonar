@@ -17,7 +17,7 @@ HEIGHT: int = 600
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
 #window.geometry("{}x{}".format(WIDTH, HEIGHT))
-window.geometry("1400x700".format(WIDTH, HEIGHT))
+window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
 # Variables globales
@@ -27,7 +27,7 @@ robot: Robot                                    # Instance de l'objet robot
 menu_frame: tkinter.Frame                       # Frame pour le menu
 canva: tkinter.Canvas                           # Canvas Tkinter
 
-# Paramètres robot
+# Paramètres defaut robot
 nb_rayons = 2
 portee_rayon = 40
 rayon_lidar = 90
@@ -79,16 +79,19 @@ def main_menu():
 
 
 def set_nb_rayons(x):
+    """Modifie la valeur de la variable nb_rayons en fonction de l'input utilisateur."""
     global nb_rayons
     nb_rayons = int(x)
 
 
 def set_portee_rayons(x):
+    """Modifie la valeur de la variable portee_rayon en fonction de l'input utilisateur."""
     global portee_rayon
     portee_rayon = int(x)
 
 
 def set_rayon_lidar(x):
+    """Modifie la valeur de la variable rayon_lidar en fonction de l'input utilisateur."""
     global rayon_lidar
     rayon_lidar = int(x)
 
@@ -116,10 +119,10 @@ def on_mouse_wheel(eventorigin):
     else:
         robot.change_orientation(10)
 
+
 def on_arrow_click(eventorigin):
     """Event flèches directionnelles pour déplacer le robot"""
     global robot
-
     key = eventorigin.keysym
     if key == "Up":
         robot.move_and_change_orientation("haut")
@@ -129,6 +132,7 @@ def on_arrow_click(eventorigin):
         robot.move_and_change_orientation("gauche")
     elif key == "Right":
         robot.move_and_change_orientation("droite")
+
 
 def key_bindings():
     """Initialisation des binds pour le robot."""
@@ -142,9 +146,8 @@ def key_bindings():
     canva.bind("<Right>", on_arrow_click)
 
 
-
 def popup():
-    """A modifier en messagebox"""
+    """Messagebox d'information pour le placement et l'orientation du robot."""
     messagebox.showinfo("Informations", "Placez le robot en cliquant à un endroit de la map. "
                                         "Le robot est orientable avec la molette de la souris")
 
@@ -165,46 +168,22 @@ def init_sim():
     if img_path == "":
         img_path = "resize.png"
     if img_path != "":
-
         resize_image(img_path)
         menu_frame.pack_forget()
         canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT, background="white")
-
         menubar = tkinter.Menu(canva)
         sim = tkinter.Menu(menubar, tearoff=0)
         sim.add_command(label="Quitter simulation", command=return_to_menu)
         menubar.add_cascade(label="Simulation", menu=sim)
         window.config(menu=menubar)
-
         image = Image.open("./resize.png")
         map_image = ImageTk.PhotoImage(image)
         canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=map_image)
         canva.image = map_image
         canva.grid(row=0, column=0)
-        bottom_frame = tkinter.Frame(canva, height=100)
-        # bottom_frame.grid(row=1, column=0)
-        # button_1 = tkinter.Button(bottom_frame, text="Quitter la simulation", command=return_to_menu)
-        # button_1.pack()
         key_bindings()
-        #popup()
     else:
         messagebox.showerror("Erreur", "Veuillez choisir une map.")
-
-
-def gui():
-    # pos = robot.get_robot_position()
-    direction = "droite"
-    while True:
-        x, y = robot.move_robot(direction)
-        rgb = image.getpixel((x, y))
-        # print("x = ", x, " ,y = ", y, " ,r = ", rgb[0], " ,g = ", rgb[1], ", b = ", rgb[2])
-        if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
-            if direction == "droite":
-                direction = "gauche"
-            elif direction == "gauche":
-                direction = "droite"
-        window.update()
-        time.sleep(0.005)
 
 
 def main():
