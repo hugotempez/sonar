@@ -66,7 +66,7 @@ def main_menu():
     nb_rayons_slider.pack()
     portee_ray = tkinter.IntVar()
     portee_rayons_slider = tkinter.Scale(simu_frame, variable=portee_ray, orient="horizontal",
-                                         from_=40, to=400, label="Portée des rayons du LIDAR :", length=180,
+                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180,
                                          command=lambda a=portee_ray.get(): set_portee_rayons(a))
     portee_rayons_slider.pack()
     rayon_lid = tkinter.IntVar()
@@ -109,7 +109,8 @@ def on_mouse_click(eventorigin):
     global robot, canva, rayon_lidar, nb_rayons, portee_rayon
     x0 = eventorigin.x
     y0 = eventorigin.y
-    robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
+    if Robot.counter == 0:
+        robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
 
 
 def on_mouse_wheel(eventorigin):
@@ -160,7 +161,6 @@ def return_to_menu():
     canva.grid_remove()
     menu_frame.pack()
     window.config(menu="")
-
 
 def init_sim():
     """Initialisation du canva et chargement de l'image"""
