@@ -17,7 +17,7 @@ class Robot:
             self.redline_x = self.x + self.rayon
             self.redline_y = self.y
             """Orientation en degrés"""
-            self.direction = 180
+            self.direction = 0
             """Rayon de détection du sonar et nombre de capteur(s)"""
             self.rayon_sonar = rayon
             self.nb_rayon = nb_rayon
@@ -56,19 +56,37 @@ class Robot:
             return False
 
     def create_sonar(self):
-        step = self.rayon_sonar / (self.nb_rayon-1)
+        step = self.rayon_sonar / (self.nb_rayon - 1)
         for ray in range(self.nb_rayon):
-            deg = self.direction - (self.rayon_sonar/2) + (ray*step)
+            deg = self.direction - (self.rayon_sonar / 2) + (ray * step)
             rad = deg * (math.pi / 180)
             x_start = math.cos(rad) * self.rayon
             y_start = math.sin(rad) * self.rayon
             x_end = math.cos(rad) * self.distance_rayon
             y_end = math.sin(rad) * self.distance_rayon
-            x_end, y_end, color = self.sensor_collision(self.x + x_start, self.y + y_start, x_end, y_end)
-            #print(ray, x_end, y_end)
-            self.lines.append(self.canva.create_line(self.x + x_start, self.y + y_start, self.x + x_end, self.y + y_end,
-                                                     fill=color, width=1))
+            # Modifiez la longueur des rayons pour s'arrêter à l'obstacle
+            x_end, y_end, color = self.detect_obstacle(x_start, y_start, x_end, y_end)
+
+            self.lines.append(self.canva.create_line(
+                self.x + x_start, self.y + y_start,
+                self.x + x_end, self.y + y_end,
+                fill=color, width=1
+            ))
+
         self.has_sonar = True
+
+    def detect_obstacle(self, x_start, y_start, x_end, y_end):
+        x_step = (x_end - x_start) / self.distance_rayon
+        y_step = (y_end - y_start) / self.distance_rayon
+
+        x, y = x_start, y_start
+        for _ in range(self.distance_rayon):
+            if self.check_collision(self.x + x, self.y + y):
+                return x, y, "red"  # Arrêtez le rayon à l'obstacle
+            x += x_step
+            y += y_step
+
+        return x_end, y_end, "blue"  # Pas d'obstacle détecté, utilisez la longueur complète du rayon
 
     def change_orientation(self, incr=0):
         if self.direction == 0 and incr < 0:
@@ -80,10 +98,45 @@ class Robot:
         rad = self.direction * math.pi / 180
         x_end = math.cos(rad) * self.rayon
         y_end = math.sin(rad) * self.rayon
+        #print(self.redline_x, x_end)
         self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
         self.kill_sonar()
         self.create_sonar()
 
+    def move_and_change_orientation(self, direction):
+        self.move_robot(direction)
+        if direction == "haut":
+            self.direction = 270
+        elif direction == "bas":
+            self.direction = 90
+        elif direction == "gauche":
+            self.direction = 180
+        elif direction == "droite":
+            self.direction = 0
+        rad = self.direction * math.pi / 180
+        x_end = math.cos(rad) * self.rayon
+        y_end = math.sin(rad) * self.rayon
+        self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
+        self.kill_sonar()
+        self.create_sonar()
+
+    def sensor_collision(self, x_start, x_end, x_stp, y_start, y_end, y_stp):
+        checked = False
+        x_copy = x_start
+        y_copy = y_start
+        i = 0
+        while x_copy < x_end and y_copy < y_end or checked:
+            checked = self.check_collision(x_copy, y_copy)
+            x_copy += x_stp
+            y_copy += y_stp
+            print(x_copy, y_copy, checked, i)
+            i += 1
+        if checked:
+            print("pas collision")
+            return x_end, y_end, "blue"
+        else:
+            print("collision")
+            return x_copy, y_copy, "red"
     def sensor_collision(self, x_start, y_start, x_end, y_end):
         x_step = (x_end - x_start) / self.distance_rayon
         y_step = (y_end - y_start) / self.distance_rayon
@@ -124,10 +177,16 @@ class Robot:
         elif direction == "haut":
             self.canva.move(self.robot, 0, -1)
             self.canva.move(self.robot_direction, 0, -1)
+            if self.has_sonar:
+                for i in range(len(self.lines)):
+                    self.canva.move(self.lines[i], 0, -1)
             self.y -= 1
         elif direction == "bas":
             self.canva.move(self.robot, 0, 1)
             self.canva.move(self.robot_direction, 0, 1)
+            if self.has_sonar:
+                for i in range(len(self.lines)):
+                    self.canva.move(self.lines[i], 0, 1)
             self.y += 1
         return self.x, self.y
 

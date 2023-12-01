@@ -116,12 +116,31 @@ def on_mouse_wheel(eventorigin):
     else:
         robot.change_orientation(10)
 
+def on_arrow_click(eventorigin):
+    """Event flèches directionnelles pour déplacer le robot"""
+    global robot
+
+    key = eventorigin.keysym
+    if key == "Up":
+        robot.move_and_change_orientation("haut")
+    elif key == "Down":
+        robot.move_and_change_orientation("bas")
+    elif key == "Left":
+        robot.move_and_change_orientation("gauche")
+    elif key == "Right":
+        robot.move_and_change_orientation("droite")
 
 def key_bindings():
     """Initialisation des binds pour le robot."""
     global canva
+    canva.focus_set()
     canva.bind("<Button 1>", on_mouse_click)
     canva.bind("<MouseWheel>", on_mouse_wheel)
+    canva.bind("<Up>", on_arrow_click)
+    canva.bind("<Down>", on_arrow_click)
+    canva.bind("<Left>", on_arrow_click)
+    canva.bind("<Right>", on_arrow_click)
+
 
 
 def popup():
