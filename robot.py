@@ -1,5 +1,6 @@
 import tkinter
 import math
+import multiprocessing
 import numpy
 
 
@@ -37,6 +38,7 @@ class Robot:
                                                      self.redline_x, self.redline_y, fill="red", width=1)
             self.has_sonar = False
             self.lines = []
+            self.collision_data = []
             self.__create_sonar()
             Robot.__increment_counter()
         else:
@@ -142,33 +144,33 @@ class Robot:
     def __move_robot(self, direction):
         """Déplace le robot et son lidar sur le canva en fonction du paramètre direction."""
         if direction == "droite":
-            self.canva.move(self.robot, 1, 0)
-            self.canva.move(self.robot_direction, 1, 0)
+            self.canva.move(self.robot, 5, 0)
+            self.canva.move(self.robot_direction, 5, 0)
             if self.has_sonar:
                 for i in range(len(self.lines)):
-                    self.canva.move(self.lines[i], 1, 0)
-            self.x += 1
+                    self.canva.move(self.lines[i], 5, 0)
+            self.x += 5
         elif direction == "gauche":
-            self.canva.move(self.robot, -1, 0)
-            self.canva.move(self.robot_direction, -1, 0)
+            self.canva.move(self.robot, -5, 0)
+            self.canva.move(self.robot_direction, -5, 0)
             if self.has_sonar:
                 for i in range(len(self.lines)):
-                    self.canva.move(self.lines[i], -1, 0)
-            self.x -= 1
+                    self.canva.move(self.lines[i], -5, 0)
+            self.x -= 5
         elif direction == "haut":
-            self.canva.move(self.robot, 0, -1)
-            self.canva.move(self.robot_direction, 0, -1)
+            self.canva.move(self.robot, 0, -5)
+            self.canva.move(self.robot_direction, 0, -5)
             if self.has_sonar:
                 for i in range(len(self.lines)):
-                    self.canva.move(self.lines[i], 0, -1)
-            self.y -= 1
+                    self.canva.move(self.lines[i], 0, -5)
+            self.y -= 5
         elif direction == "bas":
-            self.canva.move(self.robot, 0, 1)
-            self.canva.move(self.robot_direction, 0, 1)
+            self.canva.move(self.robot, 0, 5)
+            self.canva.move(self.robot_direction, 0, 5)
             if self.has_sonar:
                 for i in range(len(self.lines)):
-                    self.canva.move(self.lines[i], 0, 1)
-            self.y += 1
+                    self.canva.move(self.lines[i], 0, 5)
+            self.y += 5
         return self.x, self.y
 
     def __check_collision(self, x, y):
@@ -177,8 +179,14 @@ class Robot:
         try:
             rgb = self.image.getpixel((x, y))
             if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
+                self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
                 return True
             else:
                 return False
         except IndexError:
+            self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
             return True
+
+    def __get_last_collision_index(self):
+        """Retourne la longueur +1 du tableau de collision pour taguer les points de collision avec un id."""
+        return len(self.collision_data) + 1

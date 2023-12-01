@@ -1,10 +1,10 @@
-import time
 import tkinter
 from tkinter import filedialog, messagebox
 import sys
 import os
 from PIL import ImageTk, Image
 from robot import Robot
+from efficience import Efficience
 
 # Path d'execution
 PATH = os.path.dirname(sys.argv[0])
@@ -16,7 +16,6 @@ HEIGHT: int = 600
 # Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
-#window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
@@ -27,7 +26,7 @@ robot: Robot                                    # Instance de l'objet robot
 menu_frame: tkinter.Frame                       # Frame pour le menu
 canva: tkinter.Canvas                           # Canvas Tkinter
 
-# Paramètres defaut robot
+# Paramètres par defaut du robot
 nb_rayons = 2
 portee_rayon = 40
 rayon_lidar = 90
@@ -109,7 +108,10 @@ def on_mouse_click(eventorigin):
     global robot, canva, rayon_lidar, nb_rayons, portee_rayon
     x0 = eventorigin.x
     y0 = eventorigin.y
-    robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
+    if Robot.counter == 0:
+        robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
+    else:
+        messagebox.showerror("Erreur", "Il existe deja un robot sur la map.")
 
 
 def on_mouse_wheel(eventorigin):
@@ -155,11 +157,15 @@ def popup():
 def return_to_menu():
     """Fonction de switch entre la simulation et le menu principal."""
     global canva, menu_frame, robot
-    robot.destroy()
-    del robot
-    canva.grid_remove()
-    menu_frame.pack()
-    window.config(menu="")
+    try:
+        robot.destroy()
+        del robot
+    except NameError:
+        pass
+    finally:
+        canva.grid_remove()
+        menu_frame.pack()
+        window.config(menu="")
 
 
 def init_sim():
@@ -173,6 +179,8 @@ def init_sim():
         canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT, background="white")
         menubar = tkinter.Menu(canva)
         sim = tkinter.Menu(menubar, tearoff=0)
+        sim.add_command(label="Fonction efficience", command=build_efficience)
+        sim.add_separator()
         sim.add_command(label="Quitter simulation", command=return_to_menu)
         menubar.add_cascade(label="Simulation", menu=sim)
         window.config(menu=menubar)
@@ -184,6 +192,15 @@ def init_sim():
         key_bindings()
     else:
         messagebox.showerror("Erreur", "Veuillez choisir une map.")
+
+
+def build_efficience():
+    try:
+        window_data = {"root": window, "height": HEIGHT, "width": WIDTH}
+        eff = Efficience(robot.collision_data, window_data)
+        eff.build_efficience()
+    except NameError:
+        messagebox.showerror("Erreur", "Aucun robot sur la map, donc aucune donnée à présenter.")
 
 
 def main():
