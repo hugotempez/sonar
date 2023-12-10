@@ -1,10 +1,10 @@
+import time
 import tkinter
 from tkinter import filedialog, messagebox
 import sys
 import os
 from PIL import ImageTk, Image
 from robot import Robot
-from efficience import Efficience
 
 # Path d'execution
 PATH = os.path.dirname(sys.argv[0])
@@ -16,6 +16,7 @@ HEIGHT: int = 600
 # Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
+#window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
@@ -65,7 +66,7 @@ def main_menu():
     nb_rayons_slider.pack()
     portee_ray = tkinter.IntVar()
     portee_rayons_slider = tkinter.Scale(simu_frame, variable=portee_ray, orient="horizontal",
-                                         from_=40, to=400, label="Portée des rayons du LIDAR :", length=180,
+                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180, # a checker lucas
                                          command=lambda a=portee_ray.get(): set_portee_rayons(a))
     portee_rayons_slider.pack()
     rayon_lid = tkinter.IntVar()
