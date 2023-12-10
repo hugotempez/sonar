@@ -5,6 +5,7 @@ import sys
 import os
 from PIL import ImageTk, Image
 from robot import Robot
+from efficience import Efficience
 
 # Path d'execution
 PATH = os.path.dirname(sys.argv[0])

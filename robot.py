@@ -75,7 +75,6 @@ class Robot:
             y_end = math.sin(rad) * self.distance_rayon
             # Modifiez la longueur des rayons pour s'arrêter à l'obstacle
             x_end, y_end, color = self.__detect_obstacle(x_start, y_start, x_end, y_end)
-            x_end, y_end, color = self.detect_obstacle(x_start, y_start, x_end, y_end)
             if math.sqrt((x_end - x_start) ** 2 + (y_end - y_start) ** 2) < 2:
                 # Si oui, déplacer automatiquement le robot dans la direction opposée à l'obstacle
                 self.move_robot_opposite_to_obstacle(x_start, y_start, x_end, y_end)
@@ -86,22 +85,22 @@ class Robot:
             ))
         self.has_sonar = True
 
-        def move_robot_opposite_to_obstacle(self, x_start, y_start, x_end, y_end):
-            """Déplace le robot aléatoirement à gauche ou à droite par rapport à l'obstacle."""
-            # Calculer la direction opposée à l'obstacle
-            opposite_direction = math.atan2(y_end - y_start, x_end - x_start) * (180 / math.pi) + 180
-            # Choisir aléatoirement la direction gauche (-90) ou droite (90)
-            random_direction = random.choice([-90, 90])
-            # Changer l'orientation du robot
-            self.change_orientation(int(opposite_direction + random_direction - self.direction))
-            # Déplacer le robot dans la direction aléatoire
-            if random_direction == -90:
-                self.move_robot("gauche")
-            else:
-                self.move_robot("droite")
-            # Mettre à jour le lidar après le déplacement
-            self.kill_sonar()
-            self.create_sonar()
+    def move_robot_opposite_to_obstacle(self, x_start, y_start, x_end, y_end):
+        """Déplace le robot aléatoirement à gauche ou à droite par rapport à l'obstacle."""
+        # Calculer la direction opposée à l'obstacle
+        opposite_direction = math.atan2(y_end - y_start, x_end - x_start) * (180 / math.pi) + 180
+        # Choisir aléatoirement la direction gauche (-90) ou droite (90)
+        random_direction = random.choice([-90, 90])
+        # Changer l'orientation du robot
+        self.change_orientation(int(opposite_direction + random_direction - self.direction))
+        # Déplacer le robot dans la direction aléatoire
+        if random_direction == -90:
+            self.__move_robot("gauche")
+        else:
+            self.__move_robot("droite")
+        # Mettre à jour le lidar après le déplacement
+        self.__kill_sonar()
+        self.__create_sonar()
 
     def __detect_obstacle(self, x_start, y_start, x_end, y_end):
         """Detecte s'il existe une collision pour chaque rayon, renvoi une coordonée x/y
