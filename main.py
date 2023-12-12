@@ -1,4 +1,3 @@
-import time
 import tkinter
 from tkinter import filedialog, messagebox
 import sys
@@ -6,6 +5,7 @@ import os
 from PIL import ImageTk, Image
 from robot import Robot
 from efficience import Efficience
+import multiprocessing
 
 # Path d'execution
 PATH = os.path.dirname(sys.argv[0])
@@ -17,16 +17,18 @@ HEIGHT: int = 600
 # Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
-#window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
 # Variables globales
-img_path = ""                                   # Path de l'image
-image: Image                                    # Image en mémoire pour le check des limites
-robot: Robot                                    # Instance de l'objet robot
-menu_frame: tkinter.Frame                       # Frame pour le menu
-canva: tkinter.Canvas                           # Canvas Tkinter
+img_path = ""  # Path de l'image
+image: Image  # Image en mémoire pour le check des limites
+robot: Robot  # Instance de l'objet robot*
+menu_frame: tkinter.Frame  # Frame pour le menu
+canva: tkinter.Canvas  # Canvas Tkinter
+window_efficience: tkinter.Tk  # Fenêtre fonction efficience
+canva_efficience: tkinter.Canvas  # Canvas fonction efficience
+data_queue = multiprocessing.Queue()    # Queue pour le multiprocessing
 
 # Paramètres par defaut du robot
 nb_rayons = 2
@@ -67,7 +69,8 @@ def main_menu():
     nb_rayons_slider.pack()
     portee_ray = tkinter.IntVar()
     portee_rayons_slider = tkinter.Scale(simu_frame, variable=portee_ray, orient="horizontal",
-                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180, # a checker lucas
+                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180,
+                                         # a checker lucas
                                          command=lambda a=portee_ray.get(): set_portee_rayons(a))
     portee_rayons_slider.pack()
     rayon_lid = tkinter.IntVar()
@@ -107,11 +110,12 @@ def dialogbox_choose_map():
 
 def on_mouse_click(eventorigin):
     """Event au click pour placer le robot."""
-    global robot, canva, rayon_lidar, nb_rayons, portee_rayon
+    global robot, canva, rayon_lidar, nb_rayons, portee_rayon, data_queue
     x0 = eventorigin.x
     y0 = eventorigin.y
     if Robot.counter == 0:
-        robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
+        robot = Robot(canva, image, data_queue, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons,
+                      portee_rayon=portee_rayon)
     else:
         messagebox.showerror("Erreur", "Il existe deja un robot sur la map.")
 
@@ -181,7 +185,7 @@ def init_sim():
         canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT, background="white")
         menubar = tkinter.Menu(canva)
         sim = tkinter.Menu(menubar, tearoff=0)
-        sim.add_command(label="Fonction efficience", command=build_efficience)
+        sim.add_command(label="Fonction efficience", command=start_side_process)
         sim.add_separator()
         sim.add_command(label="Quitter simulation", command=return_to_menu)
         menubar.add_cascade(label="Simulation", menu=sim)
@@ -196,10 +200,21 @@ def init_sim():
         messagebox.showerror("Erreur", "Veuillez choisir une map.")
 
 
+def start_side_process():
+    process = multiprocessing.Process(target=build_efficience())
+    process.start()
+    process.join()
+
+
 def build_efficience():
     try:
+        global data_queue
         window_data = {"root": window, "height": HEIGHT, "width": WIDTH}
-        eff = Efficience(robot.collision_data, window_data)
+        if robot.collision_data:
+            eff = Efficience(data_queue, window_data)
+        else:
+            print("ok")
+            eff = Efficience(data_queue, window_data)
         eff.build_efficience()
     except NameError:
         messagebox.showerror("Erreur", "Aucun robot sur la map, donc aucune donnée à présenter.")
