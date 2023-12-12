@@ -41,7 +41,6 @@ class Robot:
             self.__create_sonar()
             self.mp_data_queue = data_queue
             Robot.__increment_counter()
-            print(self.__dict__)
         else:
             print("Il existe deja une instance de cette classe")
 
@@ -88,6 +87,7 @@ class Robot:
                                             "y": self.y + y_end})
                 self.mp_data_queue.put({"id": self.__get_last_collision_index(), "x": self.x + x_end,
                                         "y": self.y + y_end})
+                print(self.mp_data_queue.get())
         self.has_sonar = True
 
     def move_robot_opposite_to_obstacle(self, x_start, y_start, x_end, y_end):

@@ -130,10 +130,10 @@ def on_mouse_wheel(eventorigin):
 
 def on_arrow_click(eventorigin):
     """Event flèches directionnelles pour déplacer le robot"""
-    global robot
+    global robot, data_queue
     key = eventorigin.keysym
     if key == "Up":
-        robot.move_and_change_orientation("haut")
+        data_queue.put(robot.move_and_change_orientation("haut"))
     elif key == "Down":
         robot.move_and_change_orientation("bas")
     elif key == "Left":
@@ -201,20 +201,26 @@ def init_sim():
 
 
 def start_side_process():
-    process = multiprocessing.Process(target=build_efficience())
+    process = multiprocessing.Process(target=test())
     process.start()
-    process.join()
+
+
+def test():
+    global robot
+    window_data = {"root": window, "height": HEIGHT, "width": WIDTH}
+    eff = Efficience(robot.mp_data_queue, window_data)
+    eff.test()
 
 
 def build_efficience():
     try:
         global data_queue
+        print(data_queue.get())
         window_data = {"root": window, "height": HEIGHT, "width": WIDTH}
         if robot.collision_data:
-            eff = Efficience(data_queue, window_data)
+            eff = Efficience(robot.mp_data_queue, window_data)
         else:
-            print("ok")
-            eff = Efficience(data_queue, window_data)
+            eff = Efficience(robot.mp_data_queue, window_data)
         eff.build_efficience()
     except NameError:
         messagebox.showerror("Erreur", "Aucun robot sur la map, donc aucune donnée à présenter.")
