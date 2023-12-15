@@ -1,10 +1,11 @@
-import time
 import tkinter
 from tkinter import filedialog, messagebox
 import sys
 import os
 from PIL import ImageTk, Image
 from robot import Robot
+from efficience import Efficience
+import multiprocessing
 
 # Path d'execution
 PATH = os.path.dirname(sys.argv[0])
@@ -16,18 +17,20 @@ HEIGHT: int = 600
 # Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
-#window.geometry("{}x{}".format(WIDTH, HEIGHT))
-window.geometry("1400x700".format(WIDTH, HEIGHT))
+window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
 # Variables globales
-img_path = ""                                   # Path de l'image
-image: Image                                    # Image en mémoire pour le check des limites
-robot: Robot                                    # Instance de l'objet robot
-menu_frame: tkinter.Frame                       # Frame pour le menu
-canva: tkinter.Canvas                           # Canvas Tkinter
+img_path = ""  # Path de l'image
+image: Image  # Image en mémoire pour le check des limites
+robot: Robot  # Instance de l'objet robot*
+menu_frame: tkinter.Frame  # Frame pour le menu
+canva: tkinter.Canvas  # Canvas Tkinter
+window_efficience: tkinter.Tk  # Fenêtre fonction efficience
+canva_efficience: tkinter.Canvas  # Canvas fonction efficience
+data_queue = multiprocessing.Queue()    # Queue pour le multiprocessing
 
-# Paramètres robot
+# Paramètres par defaut du robot
 nb_rayons = 2
 portee_rayon = 40
 rayon_lidar = 90
@@ -66,7 +69,8 @@ def main_menu():
     nb_rayons_slider.pack()
     portee_ray = tkinter.IntVar()
     portee_rayons_slider = tkinter.Scale(simu_frame, variable=portee_ray, orient="horizontal",
-                                         from_=40, to=400, label="Portée des rayons du LIDAR :", length=180,
+                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180,
+                                         # a checker lucas
                                          command=lambda a=portee_ray.get(): set_portee_rayons(a))
     portee_rayons_slider.pack()
     rayon_lid = tkinter.IntVar()
@@ -79,16 +83,19 @@ def main_menu():
 
 
 def set_nb_rayons(x):
+    """Modifie la valeur de la variable nb_rayons en fonction de l'input utilisateur."""
     global nb_rayons
     nb_rayons = int(x)
 
 
 def set_portee_rayons(x):
+    """Modifie la valeur de la variable portee_rayon en fonction de l'input utilisateur."""
     global portee_rayon
     portee_rayon = int(x)
 
 
 def set_rayon_lidar(x):
+    """Modifie la valeur de la variable rayon_lidar en fonction de l'input utilisateur."""
     global rayon_lidar
     rayon_lidar = int(x)
 
@@ -103,10 +110,14 @@ def dialogbox_choose_map():
 
 def on_mouse_click(eventorigin):
     """Event au click pour placer le robot."""
-    global robot, canva, rayon_lidar, nb_rayons, portee_rayon
+    global robot, canva, rayon_lidar, nb_rayons, portee_rayon, data_queue
     x0 = eventorigin.x
     y0 = eventorigin.y
-    robot = Robot(canva, image, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons, portee_rayon=portee_rayon)
+    if Robot.counter == 0:
+        robot = Robot(canva, image, data_queue, x0, y0, 30, rayon=rayon_lidar, nb_rayon=nb_rayons,
+                      portee_rayon=portee_rayon)
+    else:
+        messagebox.showerror("Erreur", "Il existe deja un robot sur la map.")
 
 
 def on_mouse_wheel(eventorigin):
@@ -116,10 +127,10 @@ def on_mouse_wheel(eventorigin):
     else:
         robot.change_orientation(10)
 
+
 def on_arrow_click(eventorigin):
     """Event flèches directionnelles pour déplacer le robot"""
     global robot
-
     key = eventorigin.keysym
     if key == "Up":
         robot.move_and_change_orientation("haut")
@@ -129,6 +140,7 @@ def on_arrow_click(eventorigin):
         robot.move_and_change_orientation("gauche")
     elif key == "Right":
         robot.move_and_change_orientation("droite")
+
 
 def key_bindings():
     """Initialisation des binds pour le robot."""
@@ -142,9 +154,8 @@ def key_bindings():
     canva.bind("<Right>", on_arrow_click)
 
 
-
 def popup():
-    """A modifier en messagebox"""
+    """Messagebox d'information pour le placement et l'orientation du robot."""
     messagebox.showinfo("Informations", "Placez le robot en cliquant à un endroit de la map. "
                                         "Le robot est orientable avec la molette de la souris")
 
@@ -152,11 +163,15 @@ def popup():
 def return_to_menu():
     """Fonction de switch entre la simulation et le menu principal."""
     global canva, menu_frame, robot
-    robot.destroy()
-    del robot
-    canva.grid_remove()
-    menu_frame.pack()
-    window.config(menu="")
+    try:
+        robot.destroy()
+        del robot
+    except NameError:
+        pass
+    finally:
+        canva.grid_remove()
+        menu_frame.pack()
+        window.config(menu="")
 
 
 def init_sim():
@@ -165,46 +180,44 @@ def init_sim():
     if img_path == "":
         img_path = "resize.png"
     if img_path != "":
-
         resize_image(img_path)
         menu_frame.pack_forget()
         canva = tkinter.Canvas(window, width=WIDTH, height=HEIGHT, background="white")
-
         menubar = tkinter.Menu(canva)
         sim = tkinter.Menu(menubar, tearoff=0)
+        sim.add_command(label="Fonction efficience", command=start_side_process)
+        sim.add_separator()
         sim.add_command(label="Quitter simulation", command=return_to_menu)
         menubar.add_cascade(label="Simulation", menu=sim)
         window.config(menu=menubar)
-
         image = Image.open("./resize.png")
         map_image = ImageTk.PhotoImage(image)
         canva.create_image(WIDTH / 2, HEIGHT / 2, anchor="center", image=map_image)
         canva.image = map_image
         canva.grid(row=0, column=0)
-        bottom_frame = tkinter.Frame(canva, height=100)
-        # bottom_frame.grid(row=1, column=0)
-        # button_1 = tkinter.Button(bottom_frame, text="Quitter la simulation", command=return_to_menu)
-        # button_1.pack()
         key_bindings()
-        #popup()
     else:
         messagebox.showerror("Erreur", "Veuillez choisir une map.")
 
 
-def gui():
-    # pos = robot.get_robot_position()
-    direction = "droite"
-    while True:
-        x, y = robot.move_robot(direction)
-        rgb = image.getpixel((x, y))
-        # print("x = ", x, " ,y = ", y, " ,r = ", rgb[0], " ,g = ", rgb[1], ", b = ", rgb[2])
-        if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
-            if direction == "droite":
-                direction = "gauche"
-            elif direction == "gauche":
-                direction = "droite"
-        window.update()
-        time.sleep(0.005)
+def start_side_process():
+    process = multiprocessing.Process(target=build_efficience())
+    process.start()
+    process.join()
+
+
+def build_efficience():
+    try:
+        global data_queue
+        window_data = {"root": window, "height": HEIGHT, "width": WIDTH}
+        if robot.collision_data:
+            eff = Efficience(data_queue, window_data)
+        else:
+            print("ok")
+            eff = Efficience(data_queue, window_data)
+        eff.build_efficience()
+    except NameError:
+        messagebox.showerror("Erreur", "Aucun robot sur la map, donc aucune donnée à présenter.")
 
 
 def main():
