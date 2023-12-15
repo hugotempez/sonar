@@ -1,13 +1,15 @@
 import tkinter
 import math
-import random
+import random # a voir lucas
+import multiprocessing
+import numpy
 
 
 class Robot:
     """Class représentant le robot physique et toutes ses méthodes."""
     counter = 0
 
-    def __init__(self, canva, image, data_queue, x=30, y=30, diameter=30, rayon=0, nb_rayon=0, portee_rayon=60):
+    def __init__(self, canva, image, x=30, y=30, diameter=30, rayon=0, nb_rayon=0, portee_rayon=60):
         """Constructeur"""
         if Robot.__check_counter():
             # Diamétre et position du robot
@@ -39,9 +41,7 @@ class Robot:
             self.lines = []
             self.collision_data = []
             self.__create_sonar()
-            self.mp_data_queue = data_queue
             Robot.__increment_counter()
-            print(self.__dict__)
         else:
             print("Il existe deja une instance de cette classe")
 
@@ -83,11 +83,6 @@ class Robot:
                 self.x + x_end, self.y + y_end,
                 fill=color, width=1
             ))
-            if color == "red":
-                self.collision_data.append({"id": self.__get_last_collision_index(), "x": self.x + x_end,
-                                            "y": self.y + y_end})
-                self.mp_data_queue.put({"id": self.__get_last_collision_index(), "x": self.x + x_end,
-                                        "y": self.y + y_end})
         self.has_sonar = True
 
     def move_robot_opposite_to_obstacle(self, x_start, y_start, x_end, y_end):
@@ -104,9 +99,6 @@ class Robot:
         else:
             self.__move_robot("droite")
         # Mettre à jour le lidar après le déplacement
-        self.refresh_sonar()
-
-    def refresh_sonar(self):
         self.__kill_sonar()
         self.__create_sonar()
 
@@ -117,8 +109,7 @@ class Robot:
         y_step = (y_end - y_start) / self.distance_rayon
         x, y = x_start, y_start
         for _ in range(self.distance_rayon):
-            r1, r2 = self.__check_collision(self.x + x, self.y + y)
-            if r1 is not None and r2 is not None:
+            if self.__check_collision(self.x + x, self.y + y):
                 return x, y, "red"  # Arrêtez le rayon à l'obstacle et lui donner la couleur rouge
             x += x_step
             y += y_step
@@ -209,11 +200,13 @@ class Robot:
         try:
             rgb = self.image.getpixel((x, y))
             if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
-                return x, y
+                self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
+                return True
             else:
-                return None, None
+                return False
         except IndexError:
-            return x, y
+            self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
+            return True
 
     def __get_last_collision_index(self):
         """Retourne la longueur +1 du tableau de collision pour taguer les points de collision avec un id."""
