@@ -1,4 +1,3 @@
-import time
 import tkinter
 from tkinter import filedialog, messagebox
 import sys
@@ -17,7 +16,7 @@ HEIGHT: int = 600
 # Création de la fenêtre
 window = tkinter.Tk()
 chosen_map = tkinter.StringVar()
-#window.geometry("{}x{}".format(WIDTH, HEIGHT))
+window.title("Simulation LIDAR")
 window.geometry("{}x{}".format(WIDTH, HEIGHT))
 window.resizable(False, False)
 
@@ -67,7 +66,7 @@ def main_menu():
     nb_rayons_slider.pack()
     portee_ray = tkinter.IntVar()
     portee_rayons_slider = tkinter.Scale(simu_frame, variable=portee_ray, orient="horizontal",
-                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180, # a checker lucas
+                                         from_=40, to=1200, label="Portée des rayons du LIDAR :", length=180,
                                          command=lambda a=portee_ray.get(): set_portee_rayons(a))
     portee_rayons_slider.pack()
     rayon_lid = tkinter.IntVar()
@@ -173,8 +172,6 @@ def return_to_menu():
 def init_sim():
     """Initialisation du canva et chargement de l'image"""
     global window, menu_frame, image, img_path, canva
-    if img_path == "":
-        img_path = "resize.png"
     if img_path != "":
         resize_image(img_path)
         menu_frame.pack_forget()

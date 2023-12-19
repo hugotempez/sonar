@@ -1,8 +1,6 @@
 import tkinter
 import math
-import random # a voir lucas
-import multiprocessing
-import numpy
+import random
 
 
 class Robot:
@@ -147,13 +145,11 @@ class Robot:
         rad = self.direction * math.pi / 180
         x_end = math.cos(rad) * self.rayon
         y_end = math.sin(rad) * self.rayon
-        self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
-        self.__kill_sonar()
-        self.__create_sonar()
+        if self.__check_collision(x_end, y_end, check_only=True):
+            self.canva.coords(self.robot_direction, self.x, self.y, self.x + x_end, self.y + y_end)
+            self.__kill_sonar()
+            self.__create_sonar()
 
-    def get_lidar_data(self):
-        """TODO"""
-        return 1
 
     def __kill_sonar(self):
         """Supprime le lidar."""
@@ -194,19 +190,25 @@ class Robot:
             self.y += 5
         return self.x, self.y
 
-    def __check_collision(self, x, y):
+    def __check_collision(self, x, y, check_only=False):
         """Check s'il y a une collision sur la trajectoire d'un rayon du lidar, renvoie true si collision
          ou si le duo (x, y) n'existe pas, false sinon."""
         try:
             rgb = self.image.getpixel((x, y))
             if rgb[0] != 255 and rgb[1] != 255 and rgb[2] != 255:
-                self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
-                return True
+                if check_only:
+                    return True
+                else:
+                    self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
+                    return True
             else:
                 return False
         except IndexError:
-            self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
-            return True
+            if check_only:
+                return True
+            else:
+                self.collision_data.append({"id": self.__get_last_collision_index(), "x": x, "y": y})
+                return True
 
     def __get_last_collision_index(self):
         """Retourne la longueur +1 du tableau de collision pour taguer les points de collision avec un id."""
